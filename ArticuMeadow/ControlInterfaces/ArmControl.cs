@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace ArticuMeadow.ControlInterfaces
 {
@@ -124,16 +125,57 @@ namespace ArticuMeadow.ControlInterfaces
             StowArm();
         }
 
-        public void TestDance()
+        public async void TestDance()
         {
             if (IsReady)
             {
                 GoToReadyPosition();
 
                 Stop = false;
+
+                int multiplier = -1;
+
                 while (!Stop)
                 {
+                    Random r = new Random();
+                    _pivot.Step(r.Next(50) * multiplier);
+                    if (r.Next(1) == 0)
+                    {
+                        multiplier = -1;
+                    }
+                    else
+                    {
+                        multiplier = 1;
+                    }
+                    _shoulder.GoToReadyPosition();
+                    if (r.Next(1) == 0)
+                    {
+                        multiplier = -1;
+                    }
+                    else
+                    {
+                        multiplier = 1;
+                    }
+                    _elbow.GoToReadyPosition();
+                    if (r.Next(1) == 0)
+                    {
+                        multiplier = -1;
+                    }
+                    else
+                    {
+                        multiplier = 1;
+                    }
+                    _wrist.GoToReadyPosition();
+                    if (r.Next(1) == 0)
+                    {
+                        multiplier = -1;
+                    }
+                    else
+                    {
+                        multiplier = 1;
+                    }
 
+                    await Task.Delay(TimeSpan.FromSeconds(3));
                 }
             }
         }
