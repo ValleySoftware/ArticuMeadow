@@ -41,6 +41,7 @@ namespace ArticuMeadow.ControlInterfaces
         public bool Init()
         {
             var result = false;
+            Console.WriteLine("Arm Init Starerd");
 
             try
             {
@@ -58,6 +59,7 @@ namespace ArticuMeadow.ControlInterfaces
         private bool InitJoints()
         {
             var result = false;
+            Console.WriteLine("joint Inits Starerd");
 
             try
             {
@@ -78,22 +80,22 @@ namespace ArticuMeadow.ControlInterfaces
                 {
                     JointDirection = TravelDirection.Elevation,
                     Name = "Shoulder",
-                    PinOne = MeadowApp.Device.Pins.D15,
-                    PinTwo = MeadowApp.Device.Pins.D14,
-                    PinThree = MeadowApp.Device.Pins.D13,
-                    PinFour = MeadowApp.Device.Pins.D12
+                    PinOne = MeadowApp.Device.Pins.D11,
+                    PinTwo = MeadowApp.Device.Pins.D10,
+                    PinThree = MeadowApp.Device.Pins.D09,
+                    PinFour = MeadowApp.Device.Pins.D08
                 };
                 _shoulder.Init(shoulderInfo);
-
+                /*
                 _elbow = new BaseJoint();
                 var elbowInfo = new JointInfoPacket()
                 {
                     JointDirection = TravelDirection.Elevation,
                     Name = "Elbow",
-                    PinOne = MeadowApp.Device.Pins.D11,
-                    PinTwo = MeadowApp.Device.Pins.D10,
-                    PinThree = MeadowApp.Device.Pins.D09,
-                    PinFour = MeadowApp.Device.Pins.D08
+                    PinOne = MeadowApp.Device.Pins.D07,
+                    PinTwo = MeadowApp.Device.Pins.D06,
+                    PinThree = MeadowApp.Device.Pins.D05,
+                    PinFour = MeadowApp.Device.Pins.D04
                 };
                 _elbow.Init(elbowInfo);
 
@@ -102,17 +104,19 @@ namespace ArticuMeadow.ControlInterfaces
                 {
                     JointDirection = TravelDirection.Elevation,
                     Name = "Wrist",
-                    PinOne = MeadowApp.Device.Pins.D07,
-                    PinTwo = MeadowApp.Device.Pins.D06,
-                    PinThree = MeadowApp.Device.Pins.D05,
-                    PinFour = MeadowApp.Device.Pins.D04
+                    PinOne = MeadowApp.Device.Pins.D03,
+                    PinTwo = MeadowApp.Device.Pins.D02,
+                    PinThree = MeadowApp.Device.Pins.D01,
+                    PinFour = MeadowApp.Device.Pins.D00
                 };
                 _wrist.Init(wristInfo);
-
+                */
                 result = true;
+                Console.WriteLine("joint Inits complete");
             }
             catch (Exception ex)
             {
+                Console.WriteLine("**Joint Init Error** " + ex.Message);
                 result = false;
             }
 
@@ -129,53 +133,22 @@ namespace ArticuMeadow.ControlInterfaces
         {
             if (IsReady)
             {
+                Console.WriteLine("Test Dance");
+
                 GoToReadyPosition();
 
                 Stop = false;
 
-                int multiplier = -1;
-
                 while (!Stop)
                 {
-                    Random r = new Random();
-                    _pivot.Step(r.Next(50) * multiplier);
-                    if (r.Next(1) == 0)
-                    {
-                        multiplier = -1;
-                    }
-                    else
-                    {
-                        multiplier = 1;
-                    }
-                    _shoulder.GoToReadyPosition();
-                    if (r.Next(1) == 0)
-                    {
-                        multiplier = -1;
-                    }
-                    else
-                    {
-                        multiplier = 1;
-                    }
-                    _elbow.GoToReadyPosition();
-                    if (r.Next(1) == 0)
-                    {
-                        multiplier = -1;
-                    }
-                    else
-                    {
-                        multiplier = 1;
-                    }
-                    _wrist.GoToReadyPosition();
-                    if (r.Next(1) == 0)
-                    {
-                        multiplier = -1;
-                    }
-                    else
-                    {
-                        multiplier = 1;
-                    }
+                    Console.WriteLine("Test Dance Loop");
 
-                    await Task.Delay(TimeSpan.FromSeconds(3));
+                    _pivot.RandomStep();
+                    _shoulder.RandomStep();
+                    //_elbow.RandomStep();
+                    //_wrist.RandomStep();
+
+                    await Task.Delay(TimeSpan.FromSeconds(10));
                 }
             }
         }
@@ -186,8 +159,8 @@ namespace ArticuMeadow.ControlInterfaces
             {
                 _pivot.GoToReadyPosition();
                 _shoulder.GoToReadyPosition();
-                _elbow.GoToReadyPosition();
-                _wrist.GoToReadyPosition();
+                //_elbow.GoToReadyPosition();
+                //_wrist.GoToReadyPosition();
             }
         }
 

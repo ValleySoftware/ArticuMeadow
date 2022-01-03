@@ -60,6 +60,8 @@ namespace ArticuMeadow.Base
                 _informationPacket = info;
 
                 _stepper = new Uln2003(MeadowApp.Device, info.PinOne, info.PinTwo, info.PinThree, info.PinFour);
+                _stepper.Mode = Uln2003.StepperMode.FullStepDualPhase;
+                _stepper.AngularVelocity = new Meadow.Units.AngularVelocity(10, Meadow.Units.AngularVelocity.UnitType.RevolutionsPerSecond);
 
                 GoToReadyPosition();
 
@@ -106,6 +108,24 @@ namespace ArticuMeadow.Base
             {
                 _stepper.Stop();
             }
+        }
+        
+        public void RandomStep(int qty = 0)
+        {
+            if (qty == 0)
+            {
+                Random r = new Random();
+                qty = r.Next(10, 200);
+                    
+                if (r.Next(0,2) == 1)
+                {
+                    qty = qty * - 1;
+                }
+
+            }
+            Console.WriteLine(_informationPacket.Name + " Test Dance step by " + qty);
+            _stepper.Step(qty);
+
         }
     }
 }
