@@ -22,7 +22,7 @@ namespace ArticuMeadow
         void Initialize()
         {
             Console.WriteLine("Initialize hardware...");
-            arm = new ArmControl();
+            arm = new ArmControl(Device);
             arm.Init();
             arm.TestDance();
             Console.WriteLine("Init Complete");

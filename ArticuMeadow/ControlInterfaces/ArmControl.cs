@@ -1,4 +1,5 @@
 ﻿using ArticuMeadow.Base;
+using Meadow.Devices;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -13,14 +14,15 @@ namespace ArticuMeadow.ControlInterfaces
         private BaseJoint _shoulder;
         private BaseJoint _elbow;
         private BaseJoint _wrist;
+        private F7MicroV2 _device;
 
         private bool _stop;
 
         private bool _isReady;
 
-        public ArmControl()
+        public ArmControl(F7MicroV2 device)
         {
-
+            _device = device;
         }
 
         public bool IsReady
@@ -71,9 +73,12 @@ namespace ArticuMeadow.ControlInterfaces
                     PinOne = MeadowApp.Device.Pins.D15,
                     PinTwo = MeadowApp.Device.Pins.D14,
                     PinThree = MeadowApp.Device.Pins.D13,
-                    PinFour = MeadowApp.Device.Pins.D12
+                    PinFour = MeadowApp.Device.Pins.D12,
+                    Device = _device
                 };
-                _pivot.Init(pivotInfo);
+                result = _pivot.Init(pivotInfo);
+
+                /*
 
                 _shoulder = new BaseJoint();
                 var shoulderInfo = new JointInfoPacket()
@@ -86,7 +91,7 @@ namespace ArticuMeadow.ControlInterfaces
                     PinFour = MeadowApp.Device.Pins.D08
                 };
                 _shoulder.Init(shoulderInfo);
-                /*
+              
                 _elbow = new BaseJoint();
                 var elbowInfo = new JointInfoPacket()
                 {
@@ -111,8 +116,8 @@ namespace ArticuMeadow.ControlInterfaces
                 };
                 _wrist.Init(wristInfo);
                 */
-                result = true;
-                Console.WriteLine("joint Inits complete");
+               
+                Console.WriteLine("joint Inits complete: success = " + result);
             }
             catch (Exception ex)
             {
@@ -135,7 +140,7 @@ namespace ArticuMeadow.ControlInterfaces
             {
                 Console.WriteLine("Test Dance");
 
-                GoToReadyPosition();
+                //GoToReadyPosition();
 
                 Stop = false;
 
@@ -144,11 +149,11 @@ namespace ArticuMeadow.ControlInterfaces
                     Console.WriteLine("Test Dance Loop");
 
                     _pivot.RandomStep();
-                    _shoulder.RandomStep();
+                    //_shoulder.RandomStep();
                     //_elbow.RandomStep();
                     //_wrist.RandomStep();
 
-                    await Task.Delay(TimeSpan.FromSeconds(10));
+                    await Task.Delay(TimeSpan.FromSeconds(2));
                 }
             }
         }
@@ -158,7 +163,7 @@ namespace ArticuMeadow.ControlInterfaces
             if (IsReady)
             {
                 _pivot.GoToReadyPosition();
-                _shoulder.GoToReadyPosition();
+                //_shoulder.GoToReadyPosition();
                 //_elbow.GoToReadyPosition();
                 //_wrist.GoToReadyPosition();
             }
@@ -169,9 +174,9 @@ namespace ArticuMeadow.ControlInterfaces
             if (IsReady)
             {
                 _pivot.GoToStowedPosition();
-                _shoulder.GoToStowedPosition();
-                _elbow.GoToStowedPosition();
-                _wrist.GoToStowedPosition();
+                //_shoulder.GoToStowedPosition();
+                //_elbow.GoToStowedPosition();
+                //_wrist.GoToStowedPosition();
             }
         }
 
