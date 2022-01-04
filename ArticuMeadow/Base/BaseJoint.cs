@@ -17,7 +17,6 @@ namespace ArticuMeadow.Base
         public IPin PinThree { get; set; }
         public IPin PinFour { get; set; }
         public TravelDirection JointDirection { get; set; }
-        public F7MicroV2 Device { get; set; }
     }
 
     public class BaseJoint
@@ -62,11 +61,11 @@ namespace ArticuMeadow.Base
                 _informationPacket = info;
 
                 _stepper = new Uln2003(
-                    info.Device,
-                     info.Device.Pins.D01,
-                     info.Device.Pins.D02,
-                     info.Device.Pins.D03,
-                     info.Device.Pins.D04);
+                    MeadowApp.Device,
+                     info.PinOne,
+                     info.PinTwo,
+                     info.PinThree,
+                     info.PinFour);
 
                 _stepper.Mode = 
                     Uln2003.StepperMode.HalfStep;

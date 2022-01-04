@@ -1,5 +1,4 @@
 ﻿using ArticuMeadow.Base;
-using Meadow.Devices;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,15 +13,13 @@ namespace ArticuMeadow.ControlInterfaces
         private BaseJoint _shoulder;
         private BaseJoint _elbow;
         private BaseJoint _wrist;
-        private F7MicroV2 _device;
 
         private bool _stop;
 
         private bool _isReady;
 
-        public ArmControl(F7MicroV2 device)
+        public ArmControl()
         {
-            _device = device;
         }
 
         public bool IsReady
@@ -70,11 +67,10 @@ namespace ArticuMeadow.ControlInterfaces
                 {
                     JointDirection = TravelDirection.Rotation,
                     Name = "Pivot",
-                    PinOne = MeadowApp.Device.Pins.D15,
-                    PinTwo = MeadowApp.Device.Pins.D14,
-                    PinThree = MeadowApp.Device.Pins.D13,
-                    PinFour = MeadowApp.Device.Pins.D12,
-                    Device = _device
+                    PinOne = MeadowApp.Device.Pins.D01,
+                    PinTwo = MeadowApp.Device.Pins.D02,
+                    PinThree = MeadowApp.Device.Pins.D03,
+                    PinFour = MeadowApp.Device.Pins.D04
                 };
                 result = _pivot.Init(pivotInfo);
 
