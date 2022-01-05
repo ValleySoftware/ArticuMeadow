@@ -1,5 +1,6 @@
 ﻿using Meadow.Devices;
 using Meadow.Foundation.Motors.Stepper;
+using Meadow.Foundation.Sensors.Buttons;
 using Meadow.Hardware;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,8 @@ namespace ArticuMeadow.Base
         public IPin PinThree { get; set; }
         public IPin PinFour { get; set; }
         public TravelDirection JointDirection { get; set; }
+        public PushButton PositiveStopSwitch { get; set; }
+        public PushButton NegativeStopSwitch { get; set; }
     }
 
     public class BaseJoint
@@ -24,6 +27,7 @@ namespace ArticuMeadow.Base
         private JointInfoPacket _informationPacket;
         private Uln2003 _stepper;
         private bool _isReady;
+        private bool _useStopSensors = true;
 
         public BaseJoint()
         {
@@ -54,6 +58,13 @@ namespace ArticuMeadow.Base
                 )
             {
                 return false;
+            }
+
+            if (info.PositiveStopSwitch == null ||
+                info.NegativeStopSwitch == null)
+            {
+                _useStopSensors = false;
+                Console.WriteLine("No stop sensors defined for " + info.Name + ". Auto stop will be disabled.");
             }
 
             try
@@ -88,6 +99,17 @@ namespace ArticuMeadow.Base
 
             IsReady = result;
             return result;
+        }
+
+        public void LocateMinndMaxPositions()
+        {
+            if (IsReady && 
+                _useStopSensors)
+            {
+                var stop = false;
+
+                Step(-10);
+            }
         }
 
         public void GoToReadyPosition()

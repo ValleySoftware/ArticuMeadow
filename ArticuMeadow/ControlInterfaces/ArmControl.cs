@@ -67,14 +67,12 @@ namespace ArticuMeadow.ControlInterfaces
                 {
                     JointDirection = TravelDirection.Rotation,
                     Name = "Pivot",
-                    PinOne = MeadowApp.Device.Pins.D01,
-                    PinTwo = MeadowApp.Device.Pins.D02,
-                    PinThree = MeadowApp.Device.Pins.D03,
-                    PinFour = MeadowApp.Device.Pins.D04
+                    PinOne = MeadowApp.Device.Pins.D15,
+                    PinTwo = MeadowApp.Device.Pins.D14,
+                    PinThree = MeadowApp.Device.Pins.D13,
+                    PinFour = MeadowApp.Device.Pins.D12
                 };
-                result = _pivot.Init(pivotInfo);
-
-                /*
+                Console.WriteLine("joint " + pivotInfo.Name + " Init complete: success = " + _pivot.Init(pivotInfo));
 
                 _shoulder = new BaseJoint();
                 var shoulderInfo = new JointInfoPacket()
@@ -86,8 +84,8 @@ namespace ArticuMeadow.ControlInterfaces
                     PinThree = MeadowApp.Device.Pins.D09,
                     PinFour = MeadowApp.Device.Pins.D08
                 };
-                _shoulder.Init(shoulderInfo);
-              
+                Console.WriteLine("joint " + shoulderInfo.Name + " Init complete: success = " + _shoulder.Init(shoulderInfo));
+
                 _elbow = new BaseJoint();
                 var elbowInfo = new JointInfoPacket()
                 {
@@ -98,7 +96,7 @@ namespace ArticuMeadow.ControlInterfaces
                     PinThree = MeadowApp.Device.Pins.D05,
                     PinFour = MeadowApp.Device.Pins.D04
                 };
-                _elbow.Init(elbowInfo);
+                Console.WriteLine("joint " + elbowInfo.Name + " Init complete: success = " + _elbow.Init(elbowInfo));
 
                 _wrist = new BaseJoint();
                 var wristInfo = new JointInfoPacket()
@@ -110,8 +108,9 @@ namespace ArticuMeadow.ControlInterfaces
                     PinThree = MeadowApp.Device.Pins.D01,
                     PinFour = MeadowApp.Device.Pins.D00
                 };
-                _wrist.Init(wristInfo);
-                */
+                Console.WriteLine("joint " + wristInfo.Name + " Init complete: success = " + _wrist.Init(wristInfo));
+
+                result = true;
                
                 Console.WriteLine("joint Inits complete: success = " + result);
             }
@@ -136,7 +135,7 @@ namespace ArticuMeadow.ControlInterfaces
             {
                 Console.WriteLine("Test Dance");
 
-                //GoToReadyPosition();
+                GoToReadyPosition();
 
                 Stop = false;
 
@@ -145,11 +144,11 @@ namespace ArticuMeadow.ControlInterfaces
                     Console.WriteLine("Test Dance Loop");
 
                     _pivot.RandomStep();
-                    //_shoulder.RandomStep();
-                    //_elbow.RandomStep();
-                    //_wrist.RandomStep();
+                    _shoulder.RandomStep();
+                    _elbow.RandomStep();
+                    _wrist.RandomStep();
 
-                    await Task.Delay(TimeSpan.FromSeconds(2));
+                    await Task.Delay(TimeSpan.FromSeconds(1));
                 }
             }
         }
@@ -159,9 +158,9 @@ namespace ArticuMeadow.ControlInterfaces
             if (IsReady)
             {
                 _pivot.GoToReadyPosition();
-                //_shoulder.GoToReadyPosition();
-                //_elbow.GoToReadyPosition();
-                //_wrist.GoToReadyPosition();
+                _shoulder.GoToReadyPosition();
+                _elbow.GoToReadyPosition();
+                _wrist.GoToReadyPosition();
             }
         }
 
@@ -170,9 +169,9 @@ namespace ArticuMeadow.ControlInterfaces
             if (IsReady)
             {
                 _pivot.GoToStowedPosition();
-                //_shoulder.GoToStowedPosition();
-                //_elbow.GoToStowedPosition();
-                //_wrist.GoToStowedPosition();
+                _shoulder.GoToStowedPosition();
+                _elbow.GoToStowedPosition();
+                _wrist.GoToStowedPosition();
             }
         }
 
