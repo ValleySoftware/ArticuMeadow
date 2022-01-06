@@ -9,6 +9,7 @@ using System.Text;
 namespace ArticuMeadow.Base
 {
     public enum TravelDirection { Elevation, Rotation, Depth }
+    public enum PresetPositions { StowedPosition, ReadyPosition, MinimumPosition, MaximumPosition, CentrePosition }
 
     public class JointInfoPacket
     {
@@ -20,6 +21,8 @@ namespace ArticuMeadow.Base
         public TravelDirection JointDirection { get; set; }
         public PushButton PositiveStopSwitch { get; set; }
         public PushButton NegativeStopSwitch { get; set; }
+        public int StowedPosition { get; set; }
+        public int ReadyPosition { get; set; }
     }
 
     public class BaseJoint
@@ -28,6 +31,8 @@ namespace ArticuMeadow.Base
         private Uln2003 _stepper;
         private bool _isReady;
         private bool _useStopSensors = true;
+        private int _currentStepPosition = -1;
+        private int _maxStepPosition = -1;
 
         public BaseJoint()
         {
@@ -66,6 +71,12 @@ namespace ArticuMeadow.Base
                 _useStopSensors = false;
                 Console.WriteLine("No stop sensors defined for " + info.Name + ". Auto stop will be disabled.");
             }
+            else
+            {
+                _useStopSensors = true;
+                info.PositiveStopSwitch.Clicked += PositiveStopSwitch_Clicked;
+                info.NegativeStopSwitch.Clicked += NegativeStopSwitch_Clicked; 
+            }
 
             try
             {
@@ -86,7 +97,10 @@ namespace ArticuMeadow.Base
                         10, 
                         Meadow.Units.AngularVelocity.UnitType.RevolutionsPerSecond);
 
-                GoToReadyPosition();
+                if (goToReady)
+                {
+                    GoToPresetPosition(PresetPositions.ReadyPosition);
+                }
 
                 result = true;
 
@@ -101,30 +115,110 @@ namespace ArticuMeadow.Base
             return result;
         }
 
-        public void LocateMinndMaxPositions()
+        private void NegativeStopSwitch_Clicked(object sender, EventArgs e)
+        {
+            Stop();
+            _currentStepPosition = 0;
+        }
+
+        private void PositiveStopSwitch_Clicked(object sender, EventArgs e)
+        {
+            Stop();
+            _maxStepPosition = _currentStepPosition;
+        }
+
+        public void LocateMinAndMaxPositions()
         {
             if (IsReady && 
-                _useStopSensors)
+                _useStopSensors &&
+                _informationPacket.NegativeStopSwitch != null &&
+                _informationPacket.PositiveStopSwitch != null )
             {
                 var stop = false;
+                int increment = -10;
 
-                Step(-10);
+                while (!stop)
+                {
+                    _stepper.Step(increment);
+
+                    //Check both in case stepper is wired backwards.
+                    if (_informationPacket.NegativeStopSwitch.State ||
+                        _informationPacket.PositiveStopSwitch.State)
+                    {
+                        stop = true;
+                        break;
+                    }
+                }
+
+                stop = false;
+                increment = 10;
+
+                while (!stop)
+                {
+                    Step(increment);
+
+                    //Check both in case stepper is wired backwards.
+                    if (_informationPacket.NegativeStopSwitch.State ||
+                        _informationPacket.PositiveStopSwitch.State)
+                    {
+                        stop = true;
+                        break;
+                    }
+                }
+
+                GoToPresetPosition(PresetPositions.CentrePosition);
             }
         }
 
-        public void GoToReadyPosition()
+        public void GoToPresetPosition(PresetPositions preset)
         {
-            if (IsReady)
-            {
 
+            if (IsReady &&
+                _useStopSensors)
+            {
+                int moveTo = -1;
+
+                if (_maxStepPosition < 0)
+                {
+                    LocateMinAndMaxPositions();
+                }
+
+                switch (preset)
+                {
+                    case PresetPositions.StowedPosition: moveTo = _informationPacket.StowedPosition; break;
+                    case PresetPositions.ReadyPosition: moveTo = _informationPacket.ReadyPosition; break;
+                    case PresetPositions.MinimumPosition: moveTo = 0; break;
+                    case PresetPositions.MaximumPosition: moveTo = _maxStepPosition; break;
+                    case PresetPositions.CentrePosition: moveTo = CalculateCentrePosition(); break;
+                    default: moveTo = _currentStepPosition; break;
+                }
+
+                if (moveTo < 0)
+                {
+                    moveTo = CalculateCentrePosition();
+                }
+
+                if (moveTo > -1 &&
+                    _currentStepPosition > -1 &&
+                    _currentStepPosition < _maxStepPosition)
+                {
+                    int moveBy = moveTo - _currentStepPosition;
+
+                    Step(moveBy);
+                }
             }
         }
 
-        public void GoToStowedPosition()
+        private int CalculateCentrePosition()
         {
-            if (IsReady)
+            if (_maxStepPosition > 0)
             {
-
+                double halfway = (double)_maxStepPosition / (double)2;
+                return Convert.ToInt32(Math.Round(halfway) * -1);
+            }
+            else
+            {
+                return -1;
             }
         }
 
@@ -133,12 +227,13 @@ namespace ArticuMeadow.Base
             if (IsReady)
             {
                 _stepper.Step(noOfSteps);
+                _currentStepPosition = _currentStepPosition + noOfSteps;
             }
         }
 
         public void Stop()
         {
-            if (IsReady)
+            if (_stepper != null)
             {
                 _stepper.Stop();
             }

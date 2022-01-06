@@ -1,8 +1,10 @@
 ﻿using ArticuMeadow.Base;
+using Meadow.Foundation.ICs.IOExpanders;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Meadow.Hardware;
 
 namespace ArticuMeadow.ControlInterfaces
 {
@@ -13,6 +15,10 @@ namespace ArticuMeadow.ControlInterfaces
         private BaseJoint _shoulder;
         private BaseJoint _elbow;
         private BaseJoint _wrist;
+
+        private II2cBus _ii2cBus;
+        private Mcp23x08 _portExpanderOne;
+        private Mcp23x08 _portExpanderTwo;
 
         private bool _stop;
 
@@ -44,9 +50,21 @@ namespace ArticuMeadow.ControlInterfaces
 
             try
             {
+                _ii2cBus = MeadowApp.Device.CreateI2cBus(I2cBusSpeed.Standard);
+                _portExpanderOne = new Mcp23x08(_ii2cBus, false, false, false);
+                _portExpanderTwo = new Mcp23x08(_ii2cBus, false, false, true);
+            }
+            catch (Exception)
+            {
+                IsReady = false;
+                return false;
+            }
+
+            try
+            {
                 result = InitJoints();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 result = false;
             }
@@ -60,66 +78,80 @@ namespace ArticuMeadow.ControlInterfaces
             var result = false;
             Console.WriteLine("joint Inits Starerd");
 
-            try
+            if (_portExpanderOne != null && 
+                _portExpanderTwo != null)
             {
-                _pivot = new BaseJoint();
-                var pivotInfo = new JointInfoPacket()
-                {
-                    JointDirection = TravelDirection.Rotation,
-                    Name = "Pivot",
-                    PinOne = MeadowApp.Device.Pins.D15,
-                    PinTwo = MeadowApp.Device.Pins.D14,
-                    PinThree = MeadowApp.Device.Pins.D13,
-                    PinFour = MeadowApp.Device.Pins.D12
-                };
-                Console.WriteLine("joint " + pivotInfo.Name + " Init complete: success = " + _pivot.Init(pivotInfo));
 
-                _shoulder = new BaseJoint();
-                var shoulderInfo = new JointInfoPacket()
+                try
                 {
-                    JointDirection = TravelDirection.Elevation,
-                    Name = "Shoulder",
-                    PinOne = MeadowApp.Device.Pins.D11,
-                    PinTwo = MeadowApp.Device.Pins.D10,
-                    PinThree = MeadowApp.Device.Pins.D09,
-                    PinFour = MeadowApp.Device.Pins.D08
-                };
-                Console.WriteLine("joint " + shoulderInfo.Name + " Init complete: success = " + _shoulder.Init(shoulderInfo));
+                    _pivot = new BaseJoint();
+                    var pivotInfo = new JointInfoPacket()
+                    {
+                        JointDirection = TravelDirection.Rotation,
+                        Name = "Pivot",
+                        PinOne = _portExpanderOne.Pins.GP0,
+                        PinTwo = _portExpanderOne.Pins.GP1,
+                        PinThree = _portExpanderOne.Pins.GP2,
+                        PinFour = _portExpanderOne.Pins.GP3,
+                        ReadyPosition = -1,
+                        StowedPosition = -1
+                    };
+                    Console.WriteLine("joint " + pivotInfo.Name + " Init complete: success = " + _pivot.Init(pivotInfo));
 
-                _elbow = new BaseJoint();
-                var elbowInfo = new JointInfoPacket()
+                    _shoulder = new BaseJoint();
+                    var shoulderInfo = new JointInfoPacket()
+                    {
+                        JointDirection = TravelDirection.Elevation,
+                        Name = "Shoulder",
+                        PinOne = _portExpanderOne.Pins.GP4,
+                        PinTwo = _portExpanderOne.Pins.GP5,
+                        PinThree = _portExpanderOne.Pins.GP6,
+                        PinFour = _portExpanderOne.Pins.GP7,
+                        ReadyPosition = -1,
+                        StowedPosition = -1
+                    };
+                    Console.WriteLine("joint " + shoulderInfo.Name + " Init complete: success = " + _shoulder.Init(shoulderInfo));
+
+                    _elbow = new BaseJoint();
+                    var elbowInfo = new JointInfoPacket()
+                    {
+                        JointDirection = TravelDirection.Elevation,
+                        Name = "Elbow",
+                        PinOne = _portExpanderTwo.Pins.GP0,
+                        PinTwo = _portExpanderTwo.Pins.GP1,
+                        PinThree = _portExpanderTwo.Pins.GP2,
+                        PinFour = _portExpanderTwo.Pins.GP3,
+                        ReadyPosition = -1,
+                        StowedPosition = -1
+                    };
+                    Console.WriteLine("joint " + elbowInfo.Name + " Init complete: success = " + _elbow.Init(elbowInfo));
+
+                    _wrist = new BaseJoint();
+                    var wristInfo = new JointInfoPacket()
+                    {
+                        JointDirection = TravelDirection.Elevation,
+                        Name = "Wrist",
+                        PinOne = _portExpanderTwo.Pins.GP4,
+                        PinTwo = _portExpanderTwo.Pins.GP5,
+                        PinThree = _portExpanderTwo.Pins.GP6,
+                        PinFour = _portExpanderTwo.Pins.GP7,
+                        ReadyPosition = -1,
+                        StowedPosition = -1
+                    };
+                    Console.WriteLine("joint " + wristInfo.Name + " Init complete: success = " + _wrist.Init(wristInfo));
+
+                    result = true;
+
+                    GoToReadyPosition();
+
+                    Console.WriteLine("joint Inits complete: success = " + result);
+                }
+                catch (Exception ex)
                 {
-                    JointDirection = TravelDirection.Elevation,
-                    Name = "Elbow",
-                    PinOne = MeadowApp.Device.Pins.D07,
-                    PinTwo = MeadowApp.Device.Pins.D06,
-                    PinThree = MeadowApp.Device.Pins.D05,
-                    PinFour = MeadowApp.Device.Pins.D04
-                };
-                Console.WriteLine("joint " + elbowInfo.Name + " Init complete: success = " + _elbow.Init(elbowInfo));
-
-                _wrist = new BaseJoint();
-                var wristInfo = new JointInfoPacket()
-                {
-                    JointDirection = TravelDirection.Elevation,
-                    Name = "Wrist",
-                    PinOne = MeadowApp.Device.Pins.D03,
-                    PinTwo = MeadowApp.Device.Pins.D02,
-                    PinThree = MeadowApp.Device.Pins.D01,
-                    PinFour = MeadowApp.Device.Pins.D00
-                };
-                Console.WriteLine("joint " + wristInfo.Name + " Init complete: success = " + _wrist.Init(wristInfo));
-
-                result = true;
-               
-                Console.WriteLine("joint Inits complete: success = " + result);
+                    Console.WriteLine("**Joint Init Error** " + ex.Message);
+                    result = false;
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine("**Joint Init Error** " + ex.Message);
-                result = false;
-            }
-
             IsReady = result;
             return result;
         }
@@ -129,11 +161,11 @@ namespace ArticuMeadow.ControlInterfaces
             StowArm();
         }
 
-        public async void TestDance()
+        public async void Test()
         {
             if (IsReady)
             {
-                Console.WriteLine("Test Dance");
+                Console.WriteLine("Test Boogie");
 
                 GoToReadyPosition();
 
@@ -141,37 +173,37 @@ namespace ArticuMeadow.ControlInterfaces
 
                 while (!Stop)
                 {
-                    Console.WriteLine("Test Dance Loop");
+                    Console.WriteLine("Test Boogie Loop");
 
-                    _pivot.RandomStep();
-                    _shoulder.RandomStep();
-                    _elbow.RandomStep();
                     _wrist.RandomStep();
+                    _elbow.RandomStep();
+                    _shoulder.RandomStep();
+                    _pivot.RandomStep();
 
                     await Task.Delay(TimeSpan.FromSeconds(1));
                 }
             }
         }
 
-        private void GoToReadyPosition()
+        public void GoToReadyPosition()
         {
             if (IsReady)
             {
-                _pivot.GoToReadyPosition();
-                _shoulder.GoToReadyPosition();
-                _elbow.GoToReadyPosition();
-                _wrist.GoToReadyPosition();
+                _wrist.GoToPresetPosition(PresetPositions.ReadyPosition);
+                _elbow.GoToPresetPosition(PresetPositions.ReadyPosition);
+                _shoulder.GoToPresetPosition(PresetPositions.ReadyPosition);
+                _pivot.GoToPresetPosition(PresetPositions.ReadyPosition);
             }
         }
 
-        private void StowArm()
+        public void StowArm()
         {
             if (IsReady)
             {
-                _pivot.GoToStowedPosition();
-                _shoulder.GoToStowedPosition();
-                _elbow.GoToStowedPosition();
-                _wrist.GoToStowedPosition();
+                _wrist.GoToPresetPosition(PresetPositions.StowedPosition);
+                _elbow.GoToPresetPosition(PresetPositions.StowedPosition);
+                _shoulder.GoToPresetPosition(PresetPositions.StowedPosition);
+                _pivot.GoToPresetPosition(PresetPositions.StowedPosition);
             }
         }
 
@@ -227,14 +259,6 @@ namespace ArticuMeadow.ControlInterfaces
                 {
 
                 }
-                _pivot.Step(qty);
-            }
-        }
-
-        public void Point(int qty)
-        {
-            if (IsReady)
-            {
                 _pivot.Step(qty);
             }
         }

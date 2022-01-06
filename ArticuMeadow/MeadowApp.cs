@@ -12,6 +12,7 @@ namespace ArticuMeadow
     public class MeadowApp : App<F7MicroV2, MeadowApp>
     {
         private ArmControl arm;
+        private readonly bool doTest = true;
 
         public MeadowApp()
         {
@@ -24,8 +25,11 @@ namespace ArticuMeadow
             Console.WriteLine("Initialize hardware...");
             arm = new ArmControl();
             arm.Init();
-            arm.TestDance();
             Console.WriteLine("Init Complete");
+            if (doTest)
+            {
+                arm.Test();
+            }
         }
 
     }
