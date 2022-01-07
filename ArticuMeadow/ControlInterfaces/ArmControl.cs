@@ -56,6 +56,7 @@ namespace ArticuMeadow.ControlInterfaces
             }
             catch (Exception)
             {
+                Console.WriteLine("Expander Init Fail");
                 IsReady = false;
                 return false;
             }
@@ -66,6 +67,7 @@ namespace ArticuMeadow.ControlInterfaces
             }
             catch (Exception)
             {
+                Console.WriteLine("Joint Init Fail");
                 result = false;
             }
 
