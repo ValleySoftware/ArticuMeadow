@@ -1,4 +1,5 @@
 ﻿using Meadow.Devices;
+using Meadow.Foundation.ICs.IOExpanders;
 using Meadow.Foundation.Motors.Stepper;
 using Meadow.Foundation.Sensors.Buttons;
 using Meadow.Hardware;
@@ -14,13 +15,14 @@ namespace ArticuMeadow.Base
     public class JointInfoPacket
     {
         public string Name { get; set; }
-        public IPin PinOne { get; set; }
-        public IPin PinTwo { get; set; }
-        public IPin PinThree { get; set; }
-        public IPin PinFour { get; set; }
+        public IDigitalOutputPort PinOne { get; set; }
+        public IDigitalOutputPort PinTwo { get; set; }
+        public IDigitalOutputPort PinThree { get; set; }
+        public IDigitalOutputPort PinFour { get; set; }
         public TravelDirection JointDirection { get; set; }
         public PushButton PositiveStopSwitch { get; set; }
         public PushButton NegativeStopSwitch { get; set; }
+        public Mcp23x08 ioExpander { get; set; }
         public int StowedPosition { get; set; }
         public int ReadyPosition { get; set; }
     }
@@ -83,18 +85,18 @@ namespace ArticuMeadow.Base
                 _informationPacket = info;
 
                 _stepper = new Uln2003(
-                    MeadowApp.Device,
-                     info.PinOne,
-                     info.PinTwo,
-                     info.PinThree,
-                     info.PinFour);
+                    _informationPacket.ioExpander,
+                     _informationPacket.PinOne.Pin,
+                     _informationPacket.PinTwo.Pin,
+                     _informationPacket.PinThree.Pin,
+                     _informationPacket.PinFour.Pin);
 
                 _stepper.Mode = 
                     Uln2003.StepperMode.HalfStep;
 
                 _stepper.AngularVelocity = 
                     new Meadow.Units.AngularVelocity(
-                        10, 
+                        50, 
                         Meadow.Units.AngularVelocity.UnitType.RevolutionsPerSecond);
 
                 if (goToReady)
@@ -105,8 +107,10 @@ namespace ArticuMeadow.Base
                 result = true;
 
             }
-            catch (Exception) 
+            catch (Exception smEx)
             {
+                Console.WriteLine(info.Name + " init faied " + smEx.Message);
+
                 _stepper = null;
                 _informationPacket = null;
             }
@@ -244,7 +248,7 @@ namespace ArticuMeadow.Base
             if (qty == 0)
             {
                 Random r = new Random();
-                qty = r.Next(10, 200);
+                qty = r.Next(200, 800);
                     
                 if (r.Next(0,2) == 1)
                 {
@@ -252,6 +256,7 @@ namespace ArticuMeadow.Base
                 }
 
             }
+
             Console.WriteLine(_informationPacket.Name + " Test Dance step by " + qty);
             _stepper.Step(qty);
 

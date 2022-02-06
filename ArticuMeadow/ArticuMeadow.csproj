@@ -9,7 +9,7 @@
     <PackageReference Include="Meadow" Version="0.29.1" />
     <PackageReference Include="Meadow.F7" Version="0.*" />
     <PackageReference Include="Meadow.Foundation" Version="0.*" />
-    <PackageReference Include="Meadow.Foundation.ICs.IOExpanders.Mcp23x08" Version="0.1.44" />
+    <PackageReference Include="Meadow.Foundation.ICs.IOExpanders.Mcp23x08" Version="0.1.40" />
     <PackageReference Include="Meadow.Foundation.Motors.Stepper.Uln2003" Version="0.1.45" />
     <PackageReference Include="Meadow.Units" Version="0.29.0" />
   </ItemGroup>

@@ -50,13 +50,31 @@ namespace ArticuMeadow.ControlInterfaces
 
             try
             {
-                _ii2cBus = MeadowApp.Device.CreateI2cBus(I2cBusSpeed.Standard);
-                _portExpanderOne = new Mcp23x08(_ii2cBus, false, false, false);
-                _portExpanderTwo = new Mcp23x08(_ii2cBus, false, false, true);
+                _ii2cBus = MeadowApp.Device.CreateI2cBus();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                Console.WriteLine("Expander Init Fail");
+                Console.WriteLine("I2C Init Fail : " + ex.Message);
+                IsReady = false;
+                return false;
+            }
+
+            try
+            {
+                
+                IDigitalInputPort interruptPortA =
+                    MeadowApp.Device.CreateDigitalInputPort(
+                        MeadowApp.Device.Pins.D00,
+                        InterruptMode.EdgeRising);
+
+                
+
+                _portExpanderOne = new Mcp23x08(_ii2cBus, false, false, false, interruptPortA);
+                _portExpanderTwo = new Mcp23x08(_ii2cBus, true, true, true, interruptPortA);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Expander Init Fail : " + e.Message);
                 IsReady = false;
                 return false;
             }
@@ -91,12 +109,13 @@ namespace ArticuMeadow.ControlInterfaces
                     {
                         JointDirection = TravelDirection.Rotation,
                         Name = "Pivot",
-                        PinOne = _portExpanderOne.Pins.GP0,
-                        PinTwo = _portExpanderOne.Pins.GP1,
-                        PinThree = _portExpanderOne.Pins.GP2,
-                        PinFour = _portExpanderOne.Pins.GP3,
+                        PinOne = _portExpanderOne.CreateDigitalOutputPort(_portExpanderOne.Pins.GP0),
+                        PinTwo = _portExpanderOne.CreateDigitalOutputPort(_portExpanderOne.Pins.GP1),
+                        PinThree = _portExpanderOne.CreateDigitalOutputPort(_portExpanderOne.Pins.GP2),
+                        PinFour = _portExpanderOne.CreateDigitalOutputPort(_portExpanderOne.Pins.GP3),
                         ReadyPosition = -1,
-                        StowedPosition = -1
+                        StowedPosition = -1,
+                        ioExpander = _portExpanderOne
                     };
                     Console.WriteLine("joint " + pivotInfo.Name + " Init complete: success = " + _pivot.Init(pivotInfo));
 
@@ -105,26 +124,28 @@ namespace ArticuMeadow.ControlInterfaces
                     {
                         JointDirection = TravelDirection.Elevation,
                         Name = "Shoulder",
-                        PinOne = _portExpanderOne.Pins.GP4,
-                        PinTwo = _portExpanderOne.Pins.GP5,
-                        PinThree = _portExpanderOne.Pins.GP6,
-                        PinFour = _portExpanderOne.Pins.GP7,
+                        PinOne = _portExpanderOne.CreateDigitalOutputPort(_portExpanderOne.Pins.GP4),
+                        PinTwo = _portExpanderOne.CreateDigitalOutputPort(_portExpanderOne.Pins.GP5),
+                        PinThree = _portExpanderOne.CreateDigitalOutputPort(_portExpanderOne.Pins.GP6),
+                        PinFour = _portExpanderOne.CreateDigitalOutputPort(_portExpanderOne.Pins.GP7),
                         ReadyPosition = -1,
-                        StowedPosition = -1
+                        StowedPosition = -1,
+                         ioExpander = _portExpanderOne
                     };
                     Console.WriteLine("joint " + shoulderInfo.Name + " Init complete: success = " + _shoulder.Init(shoulderInfo));
-
+                    
                     _elbow = new BaseJoint();
                     var elbowInfo = new JointInfoPacket()
                     {
                         JointDirection = TravelDirection.Elevation,
                         Name = "Elbow",
-                        PinOne = _portExpanderTwo.Pins.GP0,
-                        PinTwo = _portExpanderTwo.Pins.GP1,
-                        PinThree = _portExpanderTwo.Pins.GP2,
-                        PinFour = _portExpanderTwo.Pins.GP3,
+                        PinOne = _portExpanderTwo.CreateDigitalOutputPort(_portExpanderTwo.Pins.GP0),
+                        PinTwo = _portExpanderTwo.CreateDigitalOutputPort(_portExpanderTwo.Pins.GP1),
+                        PinThree = _portExpanderTwo.CreateDigitalOutputPort(_portExpanderTwo.Pins.GP2),
+                        PinFour = _portExpanderTwo.CreateDigitalOutputPort(_portExpanderTwo.Pins.GP3),
                         ReadyPosition = -1,
-                        StowedPosition = -1
+                        StowedPosition = -1,
+                         ioExpander = _portExpanderTwo
                     };
                     Console.WriteLine("joint " + elbowInfo.Name + " Init complete: success = " + _elbow.Init(elbowInfo));
 
@@ -133,15 +154,16 @@ namespace ArticuMeadow.ControlInterfaces
                     {
                         JointDirection = TravelDirection.Elevation,
                         Name = "Wrist",
-                        PinOne = _portExpanderTwo.Pins.GP4,
-                        PinTwo = _portExpanderTwo.Pins.GP5,
-                        PinThree = _portExpanderTwo.Pins.GP6,
-                        PinFour = _portExpanderTwo.Pins.GP7,
+                        PinOne = _portExpanderTwo.CreateDigitalOutputPort(_portExpanderTwo.Pins.GP4),
+                        PinTwo = _portExpanderTwo.CreateDigitalOutputPort(_portExpanderTwo.Pins.GP5),
+                        PinThree = _portExpanderTwo.CreateDigitalOutputPort(_portExpanderTwo.Pins.GP6),
+                        PinFour = _portExpanderTwo.CreateDigitalOutputPort(_portExpanderTwo.Pins.GP7),
                         ReadyPosition = -1,
-                        StowedPosition = -1
+                        StowedPosition = -1,
+                        ioExpander = _portExpanderTwo
                     };
                     Console.WriteLine("joint " + wristInfo.Name + " Init complete: success = " + _wrist.Init(wristInfo));
-
+                    
                     result = true;
 
                     GoToReadyPosition();
